@@ -1,0 +1,215 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>NEON VECTOR</title>
+  <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <div id="ui-root">
+    <!-- MAIN MENU -->
+    <section id="screen-menu" class="screen active">
+      <div class="menu-bg-grid"></div>
+      <div class="menu-content">
+        <div class="menu-title-wrap">
+          <h1 class="game-title">NEON <span>VECTOR</span></h1>
+          <p class="game-tagline">CONTROL THE RIDE.</p>
+        </div>
+        <nav class="menu-nav">
+          <button class="menu-btn" data-action="start">START RACE</button>
+          <button class="menu-btn" data-action="controller">CONTROLLER</button>
+          <button class="menu-btn" data-action="settings">SETTINGS</button>
+          <button class="menu-btn" data-action="howto">HOW TO PLAY</button>
+        </nav>
+        <div class="menu-footer">
+          <div id="menu-controller-status" class="controller-pill offline">
+            <span class="dot"></span><span class="label">CONTROLLER OFFLINE — KEYBOARD ACTIVE</span>
+          </div>
+          <p class="menu-hint">PHYSICAL MOTION // DIGITAL SPEED</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW TO PLAY -->
+    <section id="screen-howto" class="screen">
+      <div class="panel">
+        <h2 class="panel-title">HOW TO PLAY</h2>
+        <div class="howto-grid">
+          <div>
+            <h3>KEYBOARD</h3>
+            <ul>
+              <li><b>W / ↑</b> Accelerate</li>
+              <li><b>S / ↓</b> Brake / Reverse</li>
+              <li><b>A / ←</b> Steer Left</li>
+              <li><b>D / →</b> Steer Right</li>
+              <li><b>SHIFT</b> Nitro</li>
+              <li><b>SPACE</b> Handbrake / Drift</li>
+              <li><b>C</b> Camera Mode</li>
+              <li><b>R</b> Reset Car</li>
+            </ul>
+          </div>
+          <div>
+            <h3>MPU CONTROLLER</h3>
+            <ul>
+              <li><b>Tilt Forward</b> Accelerate</li>
+              <li><b>Tilt Backward</b> Brake</li>
+              <li><b>Tilt Left / Right</b> Steer</li>
+              <li><b>Rotate</b> Fine steering</li>
+              <li><b>Quick Shake</b> Nitro</li>
+            </ul>
+          </div>
+        </div>
+        <button class="menu-btn back-btn" data-action="back">BACK</button>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="screen-settings" class="screen">
+      <div class="panel">
+        <h2 class="panel-title">SETTINGS</h2>
+        <div class="settings-row">
+          <label>GRAPHICS QUALITY</label>
+          <div class="segmented" id="quality-select">
+            <button data-value="low">LOW</button>
+            <button data-value="medium" class="selected">MEDIUM</button>
+            <button data-value="high">HIGH</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label>AUDIO</label>
+          <div class="segmented" id="audio-select">
+            <button data-value="on" class="selected">ON</button>
+            <button data-value="off">OFF</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label>MPU STEERING SENSITIVITY</label>
+          <input type="range" id="sensitivity-slider" min="0.5" max="2.5" step="0.1" value="1.3" />
+        </div>
+        <button class="menu-btn back-btn" data-action="back">BACK</button>
+      </div>
+    </section>
+
+    <!-- CONTROLLER / CALIBRATION -->
+    <section id="screen-controller" class="screen">
+      <div class="panel controller-panel">
+        <h2 class="panel-title">CONTROLLER LINK</h2>
+        <div class="controller-layout">
+          <div class="controller-info">
+            <div class="info-line"><span>WEBSOCKET</span><input id="ws-url-input" type="text" value="ws://10.106.101.62:81" spellcheck="false" /></div>
+            <div class="info-line"><span>STATUS</span><b id="controller-detail-status">OFFLINE</b></div>
+            <div class="info-line"><span>LATENCY</span><b id="controller-latency">-- ms</b></div>
+            <div class="info-line"><span>PACKET RATE</span><b id="controller-rate">-- hz</b></div>
+            <div class="info-line"><span>ROLL / PITCH</span><b id="controller-angles">-- / --</b></div>
+            <div class="info-line"><span>STEER / THROTTLE</span><b id="controller-output">-- / --</b></div>
+            <div class="info-line toggles">
+              <label><input type="checkbox" id="invert-steer" /> INVERT STEER</label>
+              <label><input type="checkbox" id="invert-pitch" /> INVERT PITCH</label>
+            </div>
+          </div>
+          <div class="motion-preview">
+            <div class="motion-ring big"><div id="preview-horizon" class="motion-horizon"></div><div id="preview-dot" class="motion-dot"></div><div class="motion-cross"></div></div>
+            <div class="hud-label">LIVE MOTION</div>
+          </div>
+        </div>
+        <div class="controller-actions">
+          <button class="menu-btn" data-action="connect">CONNECT</button>
+          <button class="menu-btn" data-action="calibrate">CALIBRATE</button>
+        </div>
+        <div id="calibration-overlay" class="calibration-overlay hidden">
+          <p class="calib-title">CALIBRATING CONTROLLER…</p>
+          <p class="calib-sub">HOLD THE CONTROLLER LEVEL AND STILL</p>
+          <div class="calib-bar"><div id="calib-progress" class="calib-progress-fill"></div></div>
+        </div>
+        <button class="menu-btn back-btn" data-action="back">BACK</button>
+      </div>
+    </section>
+
+    <!-- COUNTDOWN -->
+    <section id="screen-countdown" class="screen overlay-screen">
+      <div class="countdown-wrap">
+        <div id="countdown-number" class="countdown-number">3</div>
+        <div id="countdown-sub" class="countdown-sub">GET READY</div>
+      </div>
+    </section>
+
+    <!-- HUD -->
+    <section id="screen-hud" class="screen overlay-screen">
+      <div id="hud-root">
+        <div class="hud-panel hud-pos-panel">
+          <div class="hud-pos-main"><span id="hud-pos" class="hud-pos-num">1</span><span id="hud-pos-suffix" class="hud-pos-suffix">ST</span><span class="hud-pos-total">/ <span id="hud-pos-total">4</span></span></div>
+          <div class="hud-lap"><span class="hud-label">LAP</span> <b id="hud-lap">1</b><span class="dim">/<span id="hud-lap-total">3</span></span></div>
+          <ol id="hud-standings" class="hud-standings"></ol>
+        </div>
+
+        <div class="hud-panel hud-time-panel">
+          <div class="hud-label">RACE TIME</div>
+          <div id="hud-time" class="hud-time">00:00.00</div>
+          <div class="hud-sub"><span class="hud-label">LAP</span><b id="hud-laptime">00:00.00</b></div>
+          <div class="hud-sub"><span class="hud-label">BEST</span><b id="hud-bestlap">--:--.--</b></div>
+          <div id="hud-checkpoint" class="hud-checkpoint">CHECKPOINT 0/10</div>
+          <div id="hud-conn" class="hud-conn"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="txt">MPU LINK // OFFLINE</span><span id="hud-latency" class="latency"></span></div>
+        </div>
+
+        <div class="hud-speedo">
+          <svg viewBox="0 0 220 220" class="speedo-svg" aria-hidden="true">
+            <circle class="speedo-track" cx="110" cy="110" r="92" />
+            <circle id="speedo-fill" class="speedo-fill" cx="110" cy="110" r="92" />
+            <g id="speedo-ticks"></g>
+          </svg>
+          <div class="speedo-readout">
+            <div id="hud-speed" class="hud-speed">0</div>
+            <div class="hud-speed-unit">KM/H</div>
+          </div>
+          <div class="speedo-extra"><span>G <b id="hud-gforce">0.0</b></span><span>DRIFT <b id="hud-drift">0°</b></span></div>
+        </div>
+
+        <div class="hud-center-bottom">
+          <div id="hud-motion" class="hud-motion hidden">
+            <div class="motion-ring"><div id="motion-horizon" class="motion-horizon"></div><div id="motion-dot" class="motion-dot"></div><div class="motion-cross"></div></div>
+            <div class="hud-label">MOTION</div>
+          </div>
+          <div class="hud-nitro-block">
+            <div class="hud-nitro-head"><span class="hud-label">NITRO</span><span id="hud-nitro-pct" class="hud-nitro-pct">100%</span></div>
+            <div id="hud-nitro-bar" class="hud-nitro-bar"></div>
+          </div>
+        </div>
+
+        <div class="hud-minimap-wrap"><canvas id="hud-minimap" width="240" height="240"></canvas></div>
+
+        <div id="hud-warning" class="hud-warning hidden">WRONG WAY</div>
+        <div id="hud-message" class="hud-message"></div>
+        <div id="hud-submessage" class="hud-submessage"></div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="screen-results" class="screen">
+      <div class="panel results-panel">
+        <h2 class="panel-title" id="results-title">RACE COMPLETE</h2>
+        <div class="results-hero"><span id="res-pos-big" class="res-pos-big">1</span><span id="res-pos-suffix" class="res-pos-suffix">ST</span></div>
+        <div class="results-grid">
+          <div class="result-stat"><span>POSITION</span><b id="res-pos">1 / 4</b></div>
+          <div class="result-stat"><span>TIME</span><b id="res-time">00:00.00</b></div>
+          <div class="result-stat"><span>TOP SPEED</span><b id="res-topspeed">0 KM/H</b></div>
+          <div class="result-stat"><span>BEST LAP</span><b id="res-bestlap">00:00.00</b></div>
+          <div class="result-stat"><span>DRIFT DISTANCE</span><b id="res-drift">0 M</b></div>
+          <div class="result-stat"><span>LAPS</span><b id="res-laps" class="res-laps">--</b></div>
+        </div>
+        <div id="res-record" class="new-record hidden">NEW RECORD</div>
+        <div class="controller-actions">
+          <button class="menu-btn" data-action="race-again">RACE AGAIN</button>
+          <button class="menu-btn" data-action="menu">MAIN MENU</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

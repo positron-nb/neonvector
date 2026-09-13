@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Firmware build output (binaries, ELF) — rebuild with Arduino IDE / arduino-cli
+firmware/build/
+firmware/**/build/
+
+# Local Wi-Fi credentials — copy secrets.example.h to secrets.h
+firmware/**/secrets.h
+
+# Local editor / tool settings
+.claude/
+.vscode/
